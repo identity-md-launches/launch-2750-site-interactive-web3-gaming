@@ -244,6 +244,10 @@ try {
           .isDisabled(),
         true,
       );
+      assert.equal(
+        await page.locator(".derby-bottom p").innerText(),
+        "Live wheel data. Local races. No on-chain scores.",
+      );
     },
   );
   await check(
@@ -306,6 +310,51 @@ try {
     await page.getByRole("button", { name: "Level 1", exact: true }).click();
     assert.equal(await page.locator(".merge-inputs").count(), 0);
     await page.getByRole("button", { name: "Level 2", exact: true }).click();
+  });
+  await check("Exact NFT tier powers, integer steps and numeric input bounds", async () => {
+    const powers = economyFixture().nft.basePower;
+    await page.locator("#staked-sqk").fill("0");
+    assert.equal(await page.locator("#nft-power").getAttribute("max"), powers.at(-1));
+    assert.equal(await page.locator("#nft-power").getAttribute("step"), "1");
+    for (const [index, value] of powers.entries()) {
+      await page.getByRole("button", { name: `Level ${index + 1}`, exact: true }).click();
+      const formatted = Number(value).toLocaleString("en-US");
+      assert.match(await page.locator(".merge-output").innerText(), new RegExp(formatted));
+      await page.getByRole("spinbutton", { name: "NFT power (P)" }).fill(value);
+      assert.equal(await page.locator("#nft-power").inputValue(), value);
+      assert.equal(await page.getByLabel("Total power weight").innerText(), `${formatted}W`);
+    }
+    await page.locator("#nft-power").fill("4840");
+    assert.equal(await page.locator("#nft-power-value").inputValue(), "4840");
+    await page.locator("#nft-power").focus();
+    await page.keyboard.press("ArrowRight");
+    assert.equal(await page.locator("#nft-power-value").inputValue(), "4841");
+    await page.keyboard.press("End");
+    assert.equal(await page.locator("#nft-power-value").inputValue(), powers.at(-1));
+    await page.locator("#nft-power-value").fill("-1");
+    assert.equal(await page.locator("#nft-power-value").inputValue(), "0");
+    await page.locator("#nft-power-value").fill("9999999");
+    assert.equal(await page.locator("#nft-power-value").inputValue(), powers.at(-1));
+    await page.locator("#nft-power-value").fill("4840.5");
+    assert.equal(await page.locator("#nft-power-value").inputValue(), "4841");
+  });
+  await check("Calculator result shares the panel edge without an inner card", async () => {
+    for (const width of [390, 1440]) {
+      await page.setViewportSize({ width, height: 1100 });
+      const style = await page.locator(".power-result").evaluate((el) => {
+        const cs = getComputedStyle(el);
+        return {
+          background: cs.backgroundColor, padding: cs.padding, radius: cs.borderRadius,
+          resultLeft: el.firstElementChild.getBoundingClientRect().left,
+          labelLeft: document.querySelector(".input-heading label").getBoundingClientRect().left,
+        };
+      });
+      assert.equal(style.background, "rgba(0, 0, 0, 0)");
+      assert.equal(style.padding, "0px");
+      assert.equal(style.radius, "0px");
+      assert.equal(style.resultLeft, style.labelLeft);
+      await noOverflow(page);
+    }
   });
   await check("Automated accessibility: SqueekFi", async () => {
     const audit = await new AxeBuilder({ page }).analyze();
@@ -375,6 +424,29 @@ try {
       [],
     );
   });
+  await check("HUD copy feedback resets for every URL setting", async () => {
+    await context.grantPermissions(["clipboard-read", "clipboard-write"]);
+    for (const change of [
+      () => page.getByRole("button", { name: "Light", exact: true }).click(),
+      () => page.getByLabel("Compact layout").check(),
+      () => page.getByLabel("Show Squeek block").uncheck(),
+    ]) {
+      const oldUrl = await page.locator("#overlay-url").inputValue();
+      await page.getByRole("button", { name: "Copy overlay link" }).click();
+      await page.getByText("Overlay link copied.", { exact: true }).waitFor();
+      assert.equal(await page.evaluate(() => navigator.clipboard.readText()), oldUrl);
+      await change();
+      assert.notEqual(await page.locator("#overlay-url").inputValue(), oldUrl);
+      assert.equal(await page.evaluate(() => navigator.clipboard.readText()), oldUrl);
+      await page.getByText("Add this URL as a Browser Source in OBS.", { exact: true }).waitFor();
+    }
+    await page.getByRole("button", { name: "Copy overlay link" }).click();
+    await page.getByText("Overlay link copied.", { exact: true }).waitFor();
+    assert.equal(
+      await page.evaluate(() => navigator.clipboard.readText()),
+      await page.locator("#overlay-url").inputValue(),
+    );
+  });
   await page.screenshot({ path: `${out}/hud-desktop.png`, fullPage: true });
   await check(
     "Wallet sheet, unavailable provider, Escape and focus restoration",
@@ -438,22 +510,35 @@ try {
   });
   await page.screenshot({ path: `${out}/derby-desktop.png`, fullPage: true });
   await check(
-    "First screen at 390 exposes product and start action",
+    "First phone screen exposes all lanes, Start race and full touch Sprint",
     async () => {
       await page.setViewportSize({ width: 390, height: 844 });
-      const bounds = await page
-        .getByRole("button", { name: "Start race", exact: true })
-        .boundingBox();
-      assert.ok(
-        bounds && bounds.y + bounds.height <= 844,
-        JSON.stringify(bounds),
-      );
+      await page.evaluate(() => scrollTo(0, 0));
+      const bounds = {};
+      for (const selector of [".race-controls .button", ".hardware", ".cheddar", ".squeeks", ".player", ".sprint-button"]) {
+        const box = await page.locator(selector).boundingBox();
+        assert.ok(box && box.y >= 0 && box.y + box.height <= 844, `${selector}: ${JSON.stringify(box)}`);
+        bounds[selector] = box;
+      }
+      assert.ok(bounds[".sprint-button"].height >= 44);
+      assert.equal(await page.getByRole("button", { name: "How to play" }).isVisible(), true);
+      assert.equal(await page.locator(".metric-label").count(), 6);
+      await page.getByRole("button", { name: "Start race", exact: true }).click();
+      await wait(page, 300);
+      assert.equal(await page.evaluate(() => scrollY), 0);
+      const sprint = page.getByRole("button", { name: "Sprint", exact: false });
+      const runningBounds = await sprint.boundingBox();
+      assert.ok(runningBounds.y + runningBounds.height <= 844);
+      await sprint.click();
+      await wait(page, 100);
+      assert.ok(Number(await page.locator(".speed-readout strong").innerText()) > 0);
       await page.screenshot({
         path: `${out}/derby-mobile.png`,
         fullPage: true,
       });
       await page.screenshot({ path: `${out}/derby-mobile-first-screen.png` });
-      return `Start race bounds: ${JSON.stringify(bounds)}`;
+      await page.getByRole("button", { name: "Reset race", exact: true }).click();
+      return bounds;
     },
   );
   await check("Audio toggle is explicit and updates state", async () => {
@@ -721,10 +806,15 @@ try {
   await check("WebKit race and tab interaction", async () => {
     const safari = await webkit.launch({ headless: true });
     try {
-      const p = await safari.newPage({ viewport: { width: 390, height: 844 } });
+      const p = await safari.newPage({ viewport: { width: 390, height: 844 }, hasTouch: true });
       await fixture(p);
       await p.goto(url);
+      await p.getByText("SPINNING 🔥", { exact: true }).waitFor();
+      await p.evaluate(() => document.fonts.ready);
+      const sprint = await p.locator(".sprint-button").boundingBox();
+      assert.ok(sprint.y + sprint.height <= 844 && sprint.height >= 44, JSON.stringify(sprint));
       await p.getByRole("button", { name: "Start race", exact: true }).click();
+      await p.getByRole("button", { name: "Sprint", exact: false }).tap();
       await p.keyboard.press("Space");
       await wait(p, 150);
       assert.ok(

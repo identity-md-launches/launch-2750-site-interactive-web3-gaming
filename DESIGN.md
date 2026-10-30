@@ -22,7 +22,7 @@ All CSS colors use sRGB hex values. Primitive values are mapped to semantic role
 | `--action` | `#c9421d` | Filled primary actions with light text |
 | `--accent-hover` | `#b33616` | Primary action hover |
 | `--accent-text` / `--orange-700` | `#a93619` | Accessible orange text and active navigation |
-| `--accent-soft` / `--orange-50` | `#fff1e1` | Power result and feed notices |
+| `--accent-soft` / `--orange-50` | `#fff1e1` | Feed notices |
 | `--orange-100` | `#f8e6d2` | Wheel stage |
 | `--green-100` | `#e7eddf` | Player lane |
 | `--status` / `--green-700` | `#496044` | Hardware connection/status text |
@@ -56,14 +56,14 @@ The page shell is at most 1440px including 32px desktop gutters. At 1600px and a
 - **Above 1150px:** six telemetry columns; wheel on the left and four-lane race on the right; two calculator columns; HUD controls beside its preview.
 - **1150px and below:** compact counters, hidden header tagline and decorative note, tighter two-column layouts.
 - **830px and below:** telemetry becomes a three-column/two-row grid. Feature grids stack. The race moves above the wheel so Start race arrives early. Calculator and HUD controls follow the same reading order as their desktop versions.
-- **540px and below:** 16px page gutters, shortened tab labels, compact header utilities, 28px product heading. The level selector becomes two rows of five. The wallet dialog becomes a bottom sheet with safe-area padding.
+- **540px and below:** 16px page gutters, shortened tab labels and compact header utilities. The promotional introduction is hidden. Derby keeps its section title and How to play, hides the repeated grand-prix heading and subtitle, and uses 12px section top padding, an 8px heading gap, 8px track gap and 12px Sprint gap. Lanes retain their 77px minimum height and Sprint retains its 44px target. The level selector becomes two rows of five. The wallet dialog becomes a bottom sheet with safe-area padding.
 - **359px and below:** smaller counters, wrapped tab text where needed, stacked reward/merge statistics, and fewer secondary lane labels.
 
-`min-width: 0`, flexible text wrapping, and bounded canvases prevent horizontal scrolling. No primary action floats over the page. At 390 × 844 the product heading, section navigation, live race track, and complete Start race button are visible. Rendered reflow was checked at 320, 390, 768, and 1440px; native browser zoom was not separately verified.
+`min-width: 0`, flexible text wrapping, and bounded canvases prevent horizontal scrolling. No primary action floats over the page. At 390 × 844, with healthy feeds and help closed, the section navigation, Derby title, all four lanes, Start race and full 44px Sprint button are visible. Sprint ends at y=838.8px before and after starting, without scrolling. Rendered reflow was checked at 320, 390, 768, and 1440px; native browser zoom was not separately verified.
 
 ## Elevation & depth
 
-The page is predominantly flat. `.surface` uses a single structural border and tonal background; panels do not combine border and shadow. The wheel's dot pattern and track markings are contextual artwork, not extra card layers. The wallet dialog is the one elevated surface: a soft shadow over a dimmed, blurred native backdrop. There is no sticky header or fixed footer covering content.
+The page is predominantly flat. `.surface` uses a single structural border and tonal background; panels do not combine border and shadow. The calculator result has a transparent background, zero padding and no radius, so its label and orange value align with the slider labels inside the outer panel. The wheel's dot pattern and track markings are contextual artwork, not extra card layers. The wallet dialog is the one elevated surface: a soft shadow over a dimmed, blurred native backdrop. There is no sticky header or fixed footer covering content.
 
 ## Shapes
 
@@ -77,9 +77,9 @@ The page is predominantly flat. `.surface` uses a single structural border and t
 | `LiveBar`, `Metric` | `src/App.tsx` | Six labeled measurements, progress semantics, freshness/retry notices. The shared `wheelState` helper in `src/model.ts` maps API `ACTIVE` to SPINNING, retains IDLE, and names counter faults. Unknown values display an em-dash data marker; stale readings are identified. |
 | Hash tab navigation | `src/App.tsx` | Selected underline and accessible tab state; Left/Right/Home/End keyboard support. Section state is local to its mounted panel. The skip link moves focus to main while preserving the selected hash tab. |
 | `Derby`, `Wheel` | `src/Derby.tsx`, `src/Wheel.tsx` | Four labeled lanes and physical-RPM Canvas. Starting a race focuses the track so Space sprints. Numeric data supplies a non-motion alternative. Pause/reset/replay, stale-feed, and counter-fault states are explicit. |
-| Power calculator | `src/SqueekFi.tsx`, `src/model.ts` | Native labeled ranges, linked outputs, live total weight, pool share, funded-stream estimate, reference/error states. |
+| Power calculator | `src/SqueekFi.tsx`, `src/model.ts` | Native labeled ranges and an editable NFT power number field share one state. Power uses integer steps from zero to the highest displayed protocol tier (1,207,269 for the current schedule); numeric edits are bounded and rounded to integers. The 132px-wide field uses 16px numeric text, a 44px minimum height and the existing focus ring. Total weight, pool share, funded-stream estimates and reference/error states remain live. |
 | Merge tree | `src/SqueekFi.tsx` | Pressed target-tier buttons, two inputs and one output, cooldown/boost details, next-level action, disabled maximum tier. |
-| `HudDisplay`, `Hud`, `Overlay` | `src/Hud.tsx` | Shared actual preview/export renderer. Theme/compact/block props; generated hash URL; clipboard success and manual-copy recovery. Overlay has no app chrome. |
+| `HudDisplay`, `Hud`, `Overlay` | `src/Hud.tsx` | Shared actual preview/export renderer. Theme/compact/block props; generated hash URL; clipboard success and manual-copy recovery. Changing appearance, compact layout or block visibility clears the copy feedback until the current URL is copied again. Overlay has no app chrome. |
 | `Wallet` | `src/wallet.tsx` | Native modal dialog with focus containment, Escape/backdrop/close, focus restoration, named providers and wallet marks. Pending, rejection, connection, disconnect, and wrong-network states. |
 | `Icon`, `Hamster` | `src/icons.tsx` | One current-color outline icon set; local decorative hamster SVG variants. Decorative SVGs are hidden from assistive technology. |
 

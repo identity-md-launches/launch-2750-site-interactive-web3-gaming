@@ -855,6 +855,16 @@ kbd {
   padding: 4px 10px;
   border-radius: 5px;
 }
+.power-input {
+  width: 132px;
+  min-height: 44px;
+  padding: 6px 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--cream-100);
+  font-size: var(--text-base);
+  text-align: end;
+}
 input[type="range"] {
   display: block;
   width: 100%;
@@ -869,12 +879,12 @@ input[type="range"] {
 }
 .power-result {
   margin-top: 28px;
-  background: var(--accent-soft);
-  padding: 20px;
+  background: transparent;
+  padding: 0;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  border-radius: var(--radius-sm);
+  border-radius: 0;
   color: var(--accent-text);
 }
 .result-value {
@@ -1670,18 +1680,7 @@ legend {
     margin-inline-start: 3px;
   }
   .playground-intro {
-    padding-block: 23px 19px;
-  }
-  .playground-intro h1 {
-    font-size: var(--text-xl);
-    max-width: 330px;
-    line-height: 1.14;
-    letter-spacing: -0.045em;
-  }
-  .playground-intro p {
-    font-size: var(--text-xs);
-    margin-top: 7px;
-    max-width: 320px;
+    display: none;
   }
   .tab-nav {
     gap: 4px;
@@ -1711,6 +1710,16 @@ legend {
   .section-content {
     padding-top: 21px;
   }
+  .section-content:has(.derby-intro) {
+    padding-top: 12px;
+  }
+  .section-intro.derby-intro {
+    margin-bottom: 8px;
+  }
+  .derby-intro p,
+  .race-panel > .panel-heading {
+    display: none;
+  }
   .section-intro {
     margin-bottom: 20px;
     gap: 8px;
@@ -1739,7 +1748,7 @@ legend {
     margin-bottom: 15px;
   }
   .race-controls {
-    padding: 12px 14px;
+    padding: 8px 14px;
   }
   .race-timer {
     font-size: var(--text-xl);
@@ -1749,7 +1758,7 @@ legend {
     padding-inline: 15px;
   }
   .track {
-    margin-top: 15px;
+    margin-top: 8px;
   }
   .race-lane {
     min-height: 77px;
@@ -1767,7 +1776,7 @@ legend {
     height: 42px;
   }
   .sprint-controls {
-    margin-top: 17px;
+    margin-top: 12px;
   }
   .sprint-button {
     min-width: 182px;
@@ -1845,9 +1854,6 @@ legend {
   }
   .surface > p {
     font-size: var(--text-sm);
-  }
-  .power-result {
-    padding: 16px;
   }
   .result-value {
     font-size: var(--text-xl);

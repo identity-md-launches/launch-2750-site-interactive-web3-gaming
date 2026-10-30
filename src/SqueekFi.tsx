@@ -28,6 +28,7 @@ export function SqueekFi({ telemetry }: { telemetry: Telemetry }) {
   const cooldowns =
     economy?.nft.cooldownBlocks.map(Number) ?? REFERENCE_COOLDOWN;
   const max = Math.min(powers.length, economy?.nft.maximumLevel ?? 10);
+  const maxPower = Math.max(...powers.slice(0, max));
   const selectedPower = powers[level - 1];
   const inputPower = level > 1 ? powers[level - 2] : 0;
   return (
@@ -56,25 +57,38 @@ export function SqueekFi({ telemetry }: { telemetry: Telemetry }) {
           </p>
           <div className="slider-group">
             <div className="input-heading">
-              <label htmlFor="nft-power">
+              <label id="nft-power-label" htmlFor="nft-power-value">
                 NFT power <span className="muted">(P)</span>
               </label>
-              <output className="numeric" htmlFor="nft-power">
-                {format(p)}
-              </output>
+              <input
+                id="nft-power-value"
+                className="numeric power-input"
+                type="number"
+                aria-labelledby="nft-power-label"
+                min="0"
+                max={maxPower}
+                step="1"
+                value={p}
+                onChange={(e) => {
+                  const value = e.target.valueAsNumber;
+                  if (Number.isFinite(value))
+                    setP(Math.min(maxPower, Math.max(0, Math.round(value))));
+                }}
+              />
             </div>
             <input
               id="nft-power"
               type="range"
+              aria-labelledby="nft-power-label"
               min="0"
-              max="10000"
-              step="100"
+              max={maxPower}
+              step="1"
               value={p}
               onChange={(e) => setP(Number(e.target.value))}
             />
             <div className="range-ends small muted">
               <span>0</span>
-              <span>10,000 power</span>
+              <span>{format(maxPower)} power</span>
             </div>
           </div>
           <div className="slider-group">

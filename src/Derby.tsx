@@ -101,7 +101,7 @@ export function Derby({
   };
   return (
     <>
-      <div className="section-intro">
+      <div className="section-intro derby-intro">
         <div>
           <h2>Squeek Derby</h2>
           <p className="muted">A 5-metre dash. Four tiny contenders.</p>
@@ -253,7 +253,7 @@ export function Derby({
           <div>
             <strong>A little exercise. A whole ecosystem.</strong>
             <p className="small muted">
-              The wheel is real. The race is for fun. The chain keeps the score.
+              Live wheel data. Local races. No on-chain scores.
             </p>
           </div>
         </div>

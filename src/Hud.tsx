@@ -90,6 +90,9 @@ export function Hud({ telemetry }: { telemetry: Telemetry }) {
   const [compact, setCompact] = useState(false);
   const [showEconomy, setShowEconomy] = useState(true);
   const [copyState, setCopyState] = useState("");
+  useEffect(() => {
+    setCopyState("");
+  }, [theme, compact, showEconomy]);
   const field = useRef<HTMLInputElement>(null);
   const url = new URL(location.href);
   url.hash = new URLSearchParams({
